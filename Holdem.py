@@ -9,10 +9,10 @@ Simulate a round of Holdem with 5 players
 #Player:
 class Player:
     #Each player should start off with a set personality type and an amount of money, but the money seems arbitrary, since everyone is going to start off with the same amount of money. Let's define it anyway for the time being. Also, the player starts off with a blank hand.
-    def __init__(self,personality,cash):
+    def __init__(self,personality,cash,hand):
         self.personality = personality
         self.cash = cash
-        self.hand = [0,0] #the zero is just a placeholder for each card in the player's hand
+        self.hand = hand
 
     #a method to print the object normally as a string for debugging or whatever
     def __str__(self):
@@ -75,9 +75,9 @@ class Player:
 #Properties: Count -- number of cards remaining in deck
 #Board:
 class Board:
-    def __init__(self):
+    def __init__(self,cards):
         #Attributes: Pot, Cards on Table, Number of Players, Turn Number
-        self.cards = [0,0,0,0,0]
+        self.cards = cards
         self.turn = 0
         self.pot = 0
         self.players = 0
@@ -98,14 +98,30 @@ a.evaluate(b)
 print (a)
 print (b)
 print (a.cardSet)
-"""
+
 
 from deck import Deck
 pile = Deck()
 
 from hand import Hand
-first = Hand(pile.draw(5))
+first = Hand(pile.draw(7))
 
-second = Hand(pile.draw(5))
+second = Hand(pile.draw(7))
 
 print (first)
+"""
+#deal two cards to player, assign personality and provide cash
+from deck import Deck
+pile = Deck()
+from hand import Hand
+first = Hand(pile.draw(2)) 
+#print (first)
+
+a = Player('A',100.00,first)
+print (a)
+
+round2deal = Hand(pile.draw(3))
+
+b = Board(round2deal)
+
+print (b)
