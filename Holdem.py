@@ -13,6 +13,7 @@ class Player:
         self.personality = personality
         self.cash = cash
         self.hand = hand
+        
 
     #a method to print the object normally as a string for debugging or whatever
     def __str__(self):
@@ -91,37 +92,47 @@ class Board:
 
 #Debugging
 
-"""
-a = Player('A',100.00)
-b = Board()
-a.evaluate(b)
-print (a)
-print (b)
-print (a.cardSet)
-
-
+#deal two cards to players, assign personalities and provide cash
 from deck import Deck
 pile = Deck()
 
-from hand import Hand
-first = Hand(pile.draw(7))
-
-second = Hand(pile.draw(7))
-
-print (first)
-"""
-#deal two cards to player, assign personality and provide cash
-from deck import Deck
-pile = Deck()
 from hand import Hand
 first = Hand(pile.draw(2)) 
-#print (first)
+second = Hand(pile.draw(2))
 
-a = Player('A',100.00,first)
-print (a)
+firstPlayer = Player('A',100.00,first)
+secondPlayer = Player('B',100.00,second)
 
-round2deal = Hand(pile.draw(3))
+dealToBoard = Hand(pile.draw(3))
+b = Board(dealToBoard)
 
-b = Board(round2deal)
+#board cards are (for practical purposes) added to players hand
+"""alternatively and probably better to print out as a string but keep objects separate
+maybe by passing board to player method evaluate
+"""
+firstPlayer.hand = Hand(firstPlayer.hand.cards + b.cards.cards)
+secondPlayer.hand = Hand(secondPlayer.hand.cards + b.cards.cards)
 
-print (b)
+#draw another card to the board
+b.cards2 = Hand(pile.draw(1))
+
+#add to players hand
+firstPlayer.hand = Hand(firstPlayer.hand.cards + b.cards2.cards)
+secondPlayer.hand = Hand(secondPlayer.hand.cards + b.cards2.cards)
+
+#draw final card to board
+b.cards3 = Hand(pile.draw(1))
+
+#add to players hand
+firstPlayer.hand = Hand(firstPlayer.hand.cards + b.cards3.cards)
+secondPlayer.hand = Hand(secondPlayer.hand.cards + b.cards3.cards)
+
+""" can we combine hand and cards? """
+
+"""TODO -- compare hands"""
+
+
+print (firstPlayer)
+print (secondPlayer)
+
+
