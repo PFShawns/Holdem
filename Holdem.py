@@ -1,6 +1,4 @@
-﻿#import deck
-#import hand
-
+﻿
 """
 Simulate a round of Holdem with 5 players
 
@@ -70,15 +68,12 @@ class Player:
         
     #if threshhold over or equal, call, check, or raise        
 
-#Deck:
 
-#Functions: Shuffle, Deal -- three types of deal based on stage of game
-#Properties: Count -- number of cards remaining in deck
-#Board:
+#Board: possibly instance of HAND with additional attributes
 class Board:
     def __init__(self,cards):
         #Attributes: Pot, Cards on Table, Number of Players, Turn Number
-        self.cards = cards
+        self.cards = list(cards)
         self.turn = 0
         self.pot = 0
         self.players = 0
@@ -103,31 +98,44 @@ second = Hand(pile.draw(2))
 firstPlayer = Player('A',100.00,first)
 secondPlayer = Player('B',100.00,second)
 
-dealToBoard = Hand(pile.draw(3))
-b = Board(dealToBoard)
+b = Hand(pile.draw(3))
 
 #board cards are (for practical purposes) added to players hand
-"""alternatively and probably better to print out as a string but keep objects separate
-maybe by passing board to player method evaluate
-"""
-firstPlayer.hand = Hand(firstPlayer.hand.cards + b.cards.cards)
-secondPlayer.hand = Hand(secondPlayer.hand.cards + b.cards.cards)
+
+
+
+firstPlayer.hand = Hand(firstPlayer.hand.cards + b.cards) 
+secondPlayer.hand = Hand(secondPlayer.hand.cards + b.cards)
+
+print (b.cards)
+
+print (firstPlayer.hand)
+print (secondPlayer.hand)
 
 #draw another card to the board
-b.cards2 = Hand(pile.draw(1))
+drawOne = pile.draw(1)
 
-#add to players hand
-firstPlayer.hand = Hand(firstPlayer.hand.cards + b.cards2.cards)
-secondPlayer.hand = Hand(secondPlayer.hand.cards + b.cards2.cards)
+#add it to both the board and the hands
+b.cards = b.cards + drawOne
 
+print (b.cards)
+
+firstPlayer.hand = Hand(firstPlayer.hand.cards + drawOne)
+secondPlayer.hand = Hand(secondPlayer.hand.cards + drawOne)
+
+print (firstPlayer.hand)
+print (secondPlayer.hand)
+ 
 #draw final card to board
-b.cards3 = Hand(pile.draw(1))
+drawOne = pile.draw(1)
 
-#add to players hand
-firstPlayer.hand = Hand(firstPlayer.hand.cards + b.cards3.cards)
-secondPlayer.hand = Hand(secondPlayer.hand.cards + b.cards3.cards)
+#add it to both the board and the hands
+b.cards = b.cards + drawOne
 
-""" can we combine hand and cards? """
+print (b.cards)
+
+firstPlayer.hand = Hand(firstPlayer.hand.cards + drawOne)
+secondPlayer.hand = Hand(secondPlayer.hand.cards + drawOne)
 
 """TODO -- compare hands"""
 
