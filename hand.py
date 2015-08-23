@@ -38,6 +38,7 @@ class Hand(object):
                 raise HandCreationError('hand can only consist of cards')
 
         self.value, self.best_cards = self._evaluate()
+        
 
     #would like to print out hand here
     #def __str__(self):

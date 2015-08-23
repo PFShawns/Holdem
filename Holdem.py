@@ -3,14 +3,15 @@
 Simulate a round of Holdem with 5 players
 
 """
-#Three objects: Player, Deck, and Table 
+#Three objects: Player, Deck, and Hand. Hand is also an attribute of Player
 #Player:
 class Player:
     #Each player should start off with a set personality type and an amount of money, but the money seems arbitrary, since everyone is going to start off with the same amount of money. Let's define it anyway for the time being. Also, the player starts off with a blank hand.
-    def __init__(self,personality,cash,hand):
+    def __init__(self,personality,cash):
         self.personality = personality
         self.cash = cash
-        self.hand = hand
+        self.hand = None
+        
         
 
     #a method to print the object normally as a string for debugging or whatever
@@ -69,6 +70,7 @@ class Player:
     #if threshhold over or equal, call, check, or raise        
 
 
+""" 
 #Board: possibly instance of HAND with additional attributes
 class Board:
     def __init__(self,cards):
@@ -81,66 +83,87 @@ class Board:
     def __str__(self):
         return "The cards on the board are " + str(self.cards)    
 #Functions: Assign blinds
-
+"""
 
 
 
 #Debugging
 
-#deal two cards to players, assign personalities and provide cash
-from deck import Deck
-pile = Deck()
-
 from hand import Hand
-first = Hand(pile.draw(2)) 
-second = Hand(pile.draw(2))
-
-firstPlayer = Player('A',100.00,first)
-secondPlayer = Player('B',100.00,second)
-
-b = Hand(pile.draw(3))
-
-#board cards are (for practical purposes) added to players hand
-
+#create list of players
+PlayerList = [
+    Player('A',100.00),
+    Player('B',100.00),
+    Player('C',100.00),
+    Player('D',100.00),
+    Player('E',100.00)
+    ]
 
 
-firstPlayer.hand = Hand(firstPlayer.hand.cards + b.cards) 
-secondPlayer.hand = Hand(secondPlayer.hand.cards + b.cards)
+winningPlayers = []
+from deck import Deck
+deck = Deck()
 
-print (b.cards)
+#start of main program--run simulation a number of times
+for _ in range(20):
 
-print (firstPlayer.hand)
-print (secondPlayer.hand)
+    #deal two cards to players, assign personalities and provide cash
+    deck.shuffle()
 
-#draw another card to the board
-drawOne = pile.draw(1)
+    #deal to players
+    for i in PlayerList:
+        i.hand = Hand(deck.draw(2))
 
-#add it to both the board and the hands
-b.cards = b.cards + drawOne
+    #deal to the board
+    b = Hand(deck.draw(3))
 
-print (b.cards)
+    #board cards are (for practical purposes) added to players hands
+    for i in PlayerList:
+        i.hand = Hand(i.hand.cards + b.cards)
 
-firstPlayer.hand = Hand(firstPlayer.hand.cards + drawOne)
-secondPlayer.hand = Hand(secondPlayer.hand.cards + drawOne)
+    #add another card to both the board and the hands
+    drawOne = deck.draw(1)
+    b.cards = b.cards + drawOne
 
-print (firstPlayer.hand)
-print (secondPlayer.hand)
- 
-#draw final card to board
-drawOne = pile.draw(1)
+    for i in PlayerList:
+        i.hand = Hand(i.hand.cards + drawOne)
 
-#add it to both the board and the hands
-b.cards = b.cards + drawOne
+    #draw final card to board
+    drawOne = deck.draw(1)
 
-print (b.cards)
+    #add it to both the board and the hands
+    b.cards = b.cards + drawOne
 
-firstPlayer.hand = Hand(firstPlayer.hand.cards + drawOne)
-secondPlayer.hand = Hand(secondPlayer.hand.cards + drawOne)
+    #list of players hands for evaluation 
+    PlayerHands = []
+    for i in PlayerList:
+        i.hand = Hand(i.hand.cards + drawOne)
+        PlayerHands.append(i.hand)
 
-"""TODO -- compare hands"""
+    """
+    TODO
+    there's a bug--winningPlayers shows identical hands and players winning three times in a row
+    establish bet system (bets, pots, cash on hand, blinds) number of wins will eventually be dependent (obvious with "all-in") on this but for now simulation to be run on number of turns only
+    perform statistics on results for comparison with probabilities
+    develop graphical interface
+    develop personality types and alterable characteristics
+    """
+
+    #lists all winning hand's players for analysis later
+    maxValue = max(PlayerHands)
+
+    for i in PlayerList:
+        if i.hand == maxValue:
+            winningPlayers.append(i)
+
+for i in winningPlayers:
+    print (i)
+            
+        
 
 
-print (firstPlayer)
-print (secondPlayer)
+
+
+
 
 
