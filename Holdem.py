@@ -10,7 +10,8 @@ class Player:
     def __init__(self,personality,cash):
         self.personality = personality
         self.cash = cash
-        self.hand = None
+        self.hand = []
+        self.winningHands = []
         
         
 
@@ -86,8 +87,23 @@ class Board:
 """
 
 
+"""
+TODO
+How best to keep hand data for analysis? 
+    Options: dict with personality type as key, winning hands as value; 
+             dict with round number as key, list of hands as value
+             list of lists containing hands for each round 
+             SQL database! 
+    Needs:
+    Frequency of hands given every player stays in through showdown (check accuracy of program with known probabilities)
+    Frequency of wins given personality type
+    Graph of cash on hand changes throughout game for each personality type
+    Statistically significant differences given personality type
+establish bet system (bets, pots, cash on hand, blinds) 
+develop graphical interface for ease of modifying personality traits and viewing results
+develop personality types and alterable traits
+"""
 
-#Debugging
 
 from hand import Hand
 #create list of players
@@ -99,31 +115,41 @@ PlayerList = [
     Player('E',100.00)
     ]
 
+winningPlayers = [] #a list of winning players, including their hands
 
-winningPlayers = []
 from deck import Deck
 deck = Deck()
 
-#start of main program--run simulation a number of times
-for _ in range(20):
+import sqlite3
+handsDb = sqlite3.connect(":memory:")
+c = handsDb.cursor()
 
-    #deal two cards to players, assign personalities and provide cash
+#create database table
+c.execute('''CREATE TABLE hands
+            (round integer, player text, hand text, won text, cash real)''')
+
+#start of main program--run simulation a number of times
+round = 1
+for _ in range(3):
+
+    #shuffle deck, deal two cards to players
     deck.shuffle()
 
     #deal to players
     for i in PlayerList:
         i.hand = Hand(deck.draw(2))
+        
 
     #deal to the board
-    b = Hand(deck.draw(3))
+    board = Hand(deck.draw(3))
 
     #board cards are (for practical purposes) added to players hands
     for i in PlayerList:
-        i.hand = Hand(i.hand.cards + b.cards)
+        i.hand = Hand(i.hand.cards + board.cards)
 
     #add another card to both the board and the hands
     drawOne = deck.draw(1)
-    b.cards = b.cards + drawOne
+    board.cards = board.cards + drawOne
 
     for i in PlayerList:
         i.hand = Hand(i.hand.cards + drawOne)
@@ -132,38 +158,69 @@ for _ in range(20):
     drawOne = deck.draw(1)
 
     #add it to both the board and the hands
-    b.cards = b.cards + drawOne
+    board.cards = board.cards + drawOne
 
+    for i in PlayerList:
+        i.hand = Hand(i.hand.cards + drawOne)
+    
+    PlayerList[0].hand.winner = True
+    bestHand = PlayerList[0].hand
+        
+    for i in PlayerList[1:]:
+        if i.hand > bestHand:
+            bestHand.winner = False
+            i.hand.winner = True
+        elif i.hand == bestHand:
+            i.hand.winner = True
+
+    for i in PlayerList:
+        #print(round,i.personality,i.hand,i.hand.winner,i.cash)
+        c.execute("INSERT INTO hands VALUES(?,?,?,?,?)",(round,i.personality,str(i.hand),i.hand.winner,i.cash))
+    
+    handsDb.commit()
+    
+    
+    
+    """
+    #determine best hand and add winning player to list
+    #bestPlayer = [i for i in PlayerList if 
+    
+    bestHand = PlayerList[0].hand
+    #bestPlayer = PlayerList[0]
+    
+    for i in PlayerList[1:]:
+        if i.hand > bestHand:
+            bestHand = i.hand
+            #bestPlayer = i
+
+    for i in PlayerList:
+        if i.hand == bestHand:
+            i.winningHands = i.hand
+    
+    #winningPlayers.append(bestPlayer)
+    #for i in winningPlayers:
+    #   print (i)
+    
+    
     #list of players hands for evaluation 
     PlayerHands = []
     for i in PlayerList:
-        i.hand = Hand(i.hand.cards + drawOne)
         PlayerHands.append(i.hand)
-
-    """
-    TODO
-    there's a bug--winningPlayers shows identical hands and players winning three times in a row
-    establish bet system (bets, pots, cash on hand, blinds) number of wins will eventually be dependent (obvious with "all-in") on this but for now simulation to be run on number of turns only
-    perform statistics on results for comparison with probabilities
-    develop graphical interface
-    develop personality types and alterable characteristics
-    """
-
+    
     #lists all winning hand's players for analysis later
     maxValue = max(PlayerHands)
 
     for i in PlayerList:
         if i.hand == maxValue:
             winningPlayers.append(i)
+        #i.hand = []
+    """
+    round += 1
 
-for i in winningPlayers:
-    print (i)
-            
-        
+handsDb.commit()
+for row in c.execute('SELECT * FROM hands ORDER BY round'):
+        print (row)
 
-
-
-
-
-
+    
+handsDb.close()
 

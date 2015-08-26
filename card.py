@@ -32,7 +32,7 @@ class Card(object):
         self.suit = suit
 
     def __repr__(self):
-        return 'Card(%s%s)' % (self.ranks[self.rank], self.suits[self.suit])
+        return '%s%s' % (self.ranks[self.rank], self.suits[self.suit])
 
     def __add__(self, other):
         if isinstance(other, int):
