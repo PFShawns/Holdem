@@ -40,10 +40,6 @@ class Hand(object):
         self.value, self.best_cards = self._evaluate()
         self.winner = False
 
-    #would like to print out hand here
-    #def __str__(self):
-    #    return "The hand is " + str(self.names[self.value]) + str(self.cards).join(str(c) for c in self.cards)#strip('[]')
-
     def __repr__(self):
         return '%s: %s' % (self.names[self.value],
                                  ', '.join(str(c) for c in self.best_cards))

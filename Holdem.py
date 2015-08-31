@@ -89,19 +89,20 @@ class Board:
 
 """
 TODO
-How best to keep hand data for analysis? 
-    Options: dict with personality type as key, winning hands as value; 
-             dict with round number as key, list of hands as value
-             list of lists containing hands for each round 
-             SQL database! 
-    Needs:
-    Frequency of hands given every player stays in through showdown (check accuracy of program with known probabilities)
-    Frequency of wins given personality type
-    Graph of cash on hand changes throughout game for each personality type
-    Statistically significant differences given personality type
-establish bet system (bets, pots, cash on hand, blinds) 
-develop graphical interface for ease of modifying personality traits and viewing results
-develop personality types and alterable traits
+    
+Graphical output (histogram) of frequency of hands
+Graphical output (histogram) of winning hands
+Frequency of wins (histogram) given personality type
+
+Graph of cash on hand changes throughout game for each personality type
+Statistically significant differences given personality type
+Establish bet system (bets, pots, cash on hand, blinds) 
+Develop graphical interface for ease of modifying personality traits and viewing results
+Develop personality types and alterable traits
+
+BUGS
+
+
 """
 
 
@@ -126,7 +127,7 @@ c = handsDb.cursor()
 
 #create database table
 c.execute('''CREATE TABLE hands
-            (round integer, player text, hand text, won text, cash real)''')
+            (round integer, player text, hand text, cards text, won text, cash real)''')
 
 #start of main program--run simulation a number of times
 round = 1
@@ -170,57 +171,55 @@ for _ in range(3):
         if i.hand > bestHand:
             bestHand.winner = False
             i.hand.winner = True
+            bestHand = i.hand
         elif i.hand == bestHand:
             i.hand.winner = True
 
     for i in PlayerList:
         #print(round,i.personality,i.hand,i.hand.winner,i.cash)
-        c.execute("INSERT INTO hands VALUES(?,?,?,?,?)",(round,i.personality,str(i.hand),i.hand.winner,i.cash))
-    
+        c.execute("INSERT INTO hands VALUES(?,?,?,?,?,?)",
+                  (round,
+                   i.personality,
+                   #str(i.hand),
+                   i.hand.names[i.hand.value],
+                   str(i.hand.best_cards),
+                   i.hand.winner,
+                   i.cash))
+    #self.names[self.value]----self.best_cards
     handsDb.commit()
     
     
     
-    """
-    #determine best hand and add winning player to list
-    #bestPlayer = [i for i in PlayerList if 
     
-    bestHand = PlayerList[0].hand
-    #bestPlayer = PlayerList[0]
-    
-    for i in PlayerList[1:]:
-        if i.hand > bestHand:
-            bestHand = i.hand
-            #bestPlayer = i
-
-    for i in PlayerList:
-        if i.hand == bestHand:
-            i.winningHands = i.hand
-    
-    #winningPlayers.append(bestPlayer)
-    #for i in winningPlayers:
-    #   print (i)
-    
-    
-    #list of players hands for evaluation 
-    PlayerHands = []
-    for i in PlayerList:
-        PlayerHands.append(i.hand)
-    
-    #lists all winning hand's players for analysis later
-    maxValue = max(PlayerHands)
-
-    for i in PlayerList:
-        if i.hand == maxValue:
-            winningPlayers.append(i)
-        #i.hand = []
-    """
     round += 1
 
 handsDb.commit()
+#prints entire database
+"""
 for row in c.execute('SELECT * FROM hands ORDER BY round'):
         print (row)
+"""
+#print frequency of all hands
+import matplotlib.pyplot as plt
+#import numpy as np
 
+handFrequency = c.execute('SELECT hand, count(hand) FROM hands GROUP BY hand')
+plt.hist(handFrequency)
+plt.title("Hand Frequency")
+#plt.xlabel("Value")
+#plt.ylabel("Frequency")
+
+fig = plt.gcf()
+
+plt.show()
+
+#plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
+
+"""
+c.execute('SELECT hand, count(hand) FROM hands GROUP BY hand')
+r = c.fetchall()
+print (r)
+"""
     
 handsDb.close()
 
