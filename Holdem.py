@@ -127,11 +127,11 @@ c = handsDb.cursor()
 
 #create database table
 c.execute('''CREATE TABLE hands
-            (round integer, player text, hand text, cards text, won text, cash real)''')
+            (round integer, player text, hand text, cards text, value integer, won text, cash real)''')
 
 #start of main program--run simulation a number of times
 round = 1
-for _ in range(3):
+for _ in range(1000):
 
     #shuffle deck, deal two cards to players
     deck.shuffle()
@@ -177,12 +177,13 @@ for _ in range(3):
 
     for i in PlayerList:
         #print(round,i.personality,i.hand,i.hand.winner,i.cash)
-        c.execute("INSERT INTO hands VALUES(?,?,?,?,?,?)",
+        c.execute("INSERT INTO hands VALUES(?,?,?,?,?,?,?)",
                   (round,
                    i.personality,
                    #str(i.hand),
                    i.hand.names[i.hand.value],
                    str(i.hand.best_cards),
+                   i.hand.value,
                    i.hand.winner,
                    i.cash))
     #self.names[self.value]----self.best_cards
@@ -200,26 +201,45 @@ for row in c.execute('SELECT * FROM hands ORDER BY round'):
         print (row)
 """
 #print frequency of all hands
+"""
 import matplotlib.pyplot as plt
-#import numpy as np
+import numpy as np
+"""
+import plotly.plotly as py
 
-handFrequency = c.execute('SELECT hand, count(hand) FROM hands GROUP BY hand')
-plt.hist(handFrequency)
+from plotly.graph_objs import *
+
+c.execute('SELECT hand, count(hand) FROM hands GROUP BY value')
+handData = c.fetchall()
+#print (handData)
+handFrequency = []
+handType = []
+for i in handData:
+    handFrequency.append(i[1])
+    handType.append(i[0])
+
+#print (handFrequency,handType)
+
+#bar chart for hand types
+trace1 = Bar(
+    x = handType,
+    y = handFrequency)
+data = Data([trace1])
+py.plot(data)
+
+"""
+plt.bar([0,1,2,3,4,5,6,7,8,9], handFrequency, 0.35) 
 plt.title("Hand Frequency")
-#plt.xlabel("Value")
-#plt.ylabel("Frequency")
-
+plt.xlabel("Hand")
+plt.ylabel("Frequency")
 fig = plt.gcf()
 
 plt.show()
 
 #plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
+"""
 
-"""
-c.execute('SELECT hand, count(hand) FROM hands GROUP BY hand')
-r = c.fetchall()
-print (r)
-"""
+
     
 handsDb.close()
 
