@@ -92,16 +92,11 @@ class Board:
 TODO
     
 Graph of cash on hand changes throughout game for each personality type
-Statistically significant differences given personality type (std dev error bars)
 Establish bet system (bets, pots, cash on hand, blinds) 
 Develop graphical interface for ease of modifying personality traits and viewing results
 Develop personality types and alterable traits
 
 BUGS
-
-Establishing winning player hands--first hand has atypical amount of wins
-    problem with ties
-    sol: determine proper loop/iteration method to sort based on items in player hand list
 
 
 """
@@ -168,8 +163,6 @@ for _ in range(1000):
     for i in PlayerList:
         i.hand = Hand(i.hand.cards + drawOne)
     
-    
-    
     #determining winning players will use two loops
     deck2 = Deck() #a dummy deck
     bestHand = Hand(deck2.draw(5)) #a dummy hand
@@ -186,11 +179,8 @@ for _ in range(1000):
             pass
         else:
             i.hand.winner = True
-            
-
-   
-
     
+    #add round results into database    
     for i in PlayerList:
         #print(round,i.personality,i.hand,i.hand.winner,i.cash)
         c.execute("INSERT INTO hands VALUES(?,?,?,?,?,?,?)",
@@ -202,11 +192,6 @@ for _ in range(1000):
                    i.hand.value,
                    i.hand.winner,
                    i.cash))
-    #self.names[self.value]----self.best_cards
-    #handsDb.commit()
-    
-    
-    
     
     round += 1
 
@@ -218,26 +203,25 @@ for row in c.execute('SELECT * FROM hands ORDER BY round'):
         print (row)
 """
 
-
 import plotly.plotly as py
 
 from plotly.graph_objs import *
 
 import statistics as st
 
-
-#select hands and count different types
+#count different types of hands 
 c.execute('SELECT hand, count(hand) FROM hands GROUP BY value')
 handData1 = c.fetchall()
 
-#select winning hands
-c.execute("SELECT hand, count (hand) FROM hands WHERE won = '1' GROUP BY value")
+#count different types of winning hands
+c.execute("SELECT hand, count(hand) FROM hands WHERE won = '1' GROUP BY value")
 handData2 = c.fetchall()
 
-#select winning personality types
+#count different winning players
 c.execute("SELECT player, count(player) FROM hands WHERE won = '1' GROUP BY player")
 handData3 = c.fetchall()
 
+#create lists of database output for graphs
 handFrequency1 = []
 handType1 = []
 for i in handData1:
@@ -256,11 +240,13 @@ for i in handData3:
     handFrequency3.append(i[1])
     handType3.append(i[0])
 
+#create Bar Chart showing number of wins for each player
 trace3 = Bar(
     x = handType3,
     y = handFrequency3,
     name = 'Winning Players')
 
+#create bands representing 2 standard deviations from the mean to indicate significance
 stddev = []
 trace4Y = []
 for i in handType3:
@@ -276,8 +262,7 @@ trace4 = Scatter(
         array = [2*x for x in stddev],
         visible = True)
     )
-            
-            
+                        
 data = Data([trace3,trace4])
 """
 
@@ -298,10 +283,6 @@ layout = Layout(barmode='stack')
 #plot_url = py.plot(fig, filename='')
 
 plot_url = py.plot(data, filename='')
-
- 
-
-
 
 handsDb.close()
 
