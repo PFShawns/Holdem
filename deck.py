@@ -19,13 +19,13 @@ class Deck(object):
 
     def __init__(self):
         self.cards = [Card(r, s) for r in range(13) for s in range(4)]
-        self.shuffle()
+        self.remaining = list(self.cards)
 
-    def shuffle(self):
+    #def shuffle(self):
         """restore all cards to deck, then shuffle it"""
 
-        self.remaining = list(self.cards)
-        random.shuffle(self.remaining)
+        #self.remaining = list(self.cards)
+        #random.shuffle(self.remaining)
 
     def draw(self, n=None):
         """remove and return a card from the deck,
@@ -43,4 +43,4 @@ class Deck(object):
         if n > len(self.remaining):
             raise DeckTooManyError('cannot draw more than remaining')
 
-        return [self.remaining.pop() for i in range(n)]
+        return [self.remaining.pop(0) for i in range(n)]

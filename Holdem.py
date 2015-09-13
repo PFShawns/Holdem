@@ -118,7 +118,7 @@ PlayerList = [
     ]
 
 from deck import Deck
-deck = Deck()
+#deck = Deck()
 
 import sqlite3
 handsDb = sqlite3.connect(":memory:")
@@ -127,13 +127,18 @@ c = handsDb.cursor()
 #create database table
 c.execute('''CREATE TABLE hands
             (round integer, player text, hand text, cards text, value integer, won text, cash real)''')
-
+import random
 #start of main program--run simulation a number of times put results in database
 round = 1
+
 for _ in range(1000):
 
-    #shuffle deck, deal two cards to players
-    deck.shuffle()
+    #shuffle deck thrice, deal two cards to players
+    #new deck
+    deck = Deck()
+    random.shuffle(deck.remaining)
+    random.shuffle(deck.remaining)
+    random.shuffle(deck.remaining)
 
     #deal to players
     for i in PlayerList:
@@ -174,10 +179,16 @@ for _ in range(1000):
     for i in PlayerList:
         if i.hand > bestHand:
             bestHand = i.hand
-            
+    
+    #account for ties == does not work as class instances are being compared     
     for i in PlayerList:
-        if i.hand == bestHand:
+        if i.hand < bestHand:
+            pass
+        else:
             i.hand.winner = True
+            
+
+   
 
     
     for i in PlayerList:
@@ -253,15 +264,16 @@ trace3 = Bar(
 stddev = []
 trace4Y = []
 for i in handType3:
-            stddev.append(st.stdev(handFrequency3))
+            stddev.append(st.pstdev(handFrequency3))
             trace4Y.append(st.mean(handFrequency3))
 
 trace4 = Scatter(
     x = handType3,
     y = trace4Y,
     error_y = ErrorY(
-        type = 'data',   
-        array = stddev,
+        type = 'data',
+        #2 std deviations   
+        array = [2*x for x in stddev],
         visible = True)
     )
             
@@ -284,9 +296,10 @@ layout = Layout(barmode='stack')
 """
 #fig = Figure(data=data, layout=layout)
 #plot_url = py.plot(fig, filename='')
+
 plot_url = py.plot(data, filename='')
 
-  
+ 
 
 
 
