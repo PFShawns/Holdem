@@ -2,6 +2,7 @@
 """
 Simulate a round of Holdem with 5 players
 
+
 """
 #Three objects: Player, Deck, and Hand. Hand is also an attribute of Player
 #Player:
@@ -90,17 +91,17 @@ class Board:
 """
 TODO
     
-Graphical output (histogram) of frequency of hands
-Graphical output (histogram) of winning hands
-Frequency of wins (histogram) given personality type
-
 Graph of cash on hand changes throughout game for each personality type
-Statistically significant differences given personality type
+Statistically significant differences given personality type (std dev error bars)
 Establish bet system (bets, pots, cash on hand, blinds) 
 Develop graphical interface for ease of modifying personality traits and viewing results
 Develop personality types and alterable traits
 
 BUGS
+
+Establishing winning player hands--first hand has atypical amount of wins
+    problem with ties
+    sol: determine proper loop/iteration method to sort based on items in player hand list
 
 
 """
@@ -116,8 +117,6 @@ PlayerList = [
     Player('E',100.00)
     ]
 
-winningPlayers = [] #a list of winning players, including their hands
-
 from deck import Deck
 deck = Deck()
 
@@ -129,7 +128,7 @@ c = handsDb.cursor()
 c.execute('''CREATE TABLE hands
             (round integer, player text, hand text, cards text, value integer, won text, cash real)''')
 
-#start of main program--run simulation a number of times
+#start of main program--run simulation a number of times put results in database
 round = 1
 for _ in range(1000):
 
@@ -164,17 +163,23 @@ for _ in range(1000):
     for i in PlayerList:
         i.hand = Hand(i.hand.cards + drawOne)
     
-    PlayerList[0].hand.winner = True
-    bestHand = PlayerList[0].hand
-        
-    for i in PlayerList[1:]:
+    
+    
+    #determining winning players will use two loops
+    deck2 = Deck() #a dummy deck
+    bestHand = Hand(deck2.draw(5)) #a dummy hand
+    bestHand.value = -1 #can't win with this hand
+
+    #establishes correspondence with highest ranking hand
+    for i in PlayerList:
         if i.hand > bestHand:
-            bestHand.winner = False
-            i.hand.winner = True
             bestHand = i.hand
-        elif i.hand == bestHand:
+            
+    for i in PlayerList:
+        if i.hand == bestHand:
             i.hand.winner = True
 
+    
     for i in PlayerList:
         #print(round,i.personality,i.hand,i.hand.winner,i.cash)
         c.execute("INSERT INTO hands VALUES(?,?,?,?,?,?,?)",
@@ -187,7 +192,7 @@ for _ in range(1000):
                    i.hand.winner,
                    i.cash))
     #self.names[self.value]----self.best_cards
-    handsDb.commit()
+    #handsDb.commit()
     
     
     
@@ -195,51 +200,95 @@ for _ in range(1000):
     round += 1
 
 handsDb.commit()
+
 #prints entire database
 """
 for row in c.execute('SELECT * FROM hands ORDER BY round'):
         print (row)
 """
-#print frequency of all hands
-"""
-import matplotlib.pyplot as plt
-import numpy as np
-"""
+
+
 import plotly.plotly as py
 
 from plotly.graph_objs import *
 
-c.execute('SELECT hand, count(hand) FROM hands GROUP BY value')
-handData = c.fetchall()
-#print (handData)
-handFrequency = []
-handType = []
-for i in handData:
-    handFrequency.append(i[1])
-    handType.append(i[0])
+import statistics as st
 
-#print (handFrequency,handType)
+
+#select hands and count different types
+c.execute('SELECT hand, count(hand) FROM hands GROUP BY value')
+handData1 = c.fetchall()
+
+#select winning hands
+c.execute("SELECT hand, count (hand) FROM hands WHERE won = '1' GROUP BY value")
+handData2 = c.fetchall()
+
+#select winning personality types
+c.execute("SELECT player, count(player) FROM hands WHERE won = '1' GROUP BY player")
+handData3 = c.fetchall()
+
+handFrequency1 = []
+handType1 = []
+for i in handData1:
+    handFrequency1.append(i[1])
+    handType1.append(i[0])
+
+handFrequency2 = []
+handType2 = []
+for i in handData2:
+    handFrequency2.append(i[1])
+    handType2.append(i[0])
+
+handFrequency3 = []
+handType3 = []
+for i in handData3:
+    handFrequency3.append(i[1])
+    handType3.append(i[0])
+
+trace3 = Bar(
+    x = handType3,
+    y = handFrequency3,
+    name = 'Winning Players')
+
+stddev = []
+trace4Y = []
+for i in handType3:
+            stddev.append(st.stdev(handFrequency3))
+            trace4Y.append(st.mean(handFrequency3))
+
+trace4 = Scatter(
+    x = handType3,
+    y = trace4Y,
+    error_y = ErrorY(
+        type = 'data',   
+        array = stddev,
+        visible = True)
+    )
+            
+            
+data = Data([trace3,trace4])
+"""
+
 
 #bar chart for hand types
 trace1 = Bar(
-    x = handType,
-    y = handFrequency)
-data = Data([trace1])
-py.plot(data)
-
+    x = handType1,
+    y = handFrequency1,
+    name = 'All Hands')
+trace2 = Bar(
+    x = handType2,
+    y = handFrequency2,
+    name = 'Winning Hands')
+data = Data([trace1,trace2])
+layout = Layout(barmode='stack')
 """
-plt.bar([0,1,2,3,4,5,6,7,8,9], handFrequency, 0.35) 
-plt.title("Hand Frequency")
-plt.xlabel("Hand")
-plt.ylabel("Frequency")
-fig = plt.gcf()
+#fig = Figure(data=data, layout=layout)
+#plot_url = py.plot(fig, filename='')
+plot_url = py.plot(data, filename='')
 
-plt.show()
-
-#plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
-"""
+  
 
 
-    
+
 handsDb.close()
 
