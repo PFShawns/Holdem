@@ -36,7 +36,7 @@ class Player:
         #turn 1 has no board cards, so the evaluation can be a basic strength ranking
         #https://commons.wikimedia.org/wiki/File:Sklansky-Malmuth_Texas_Holdem_Starting_Hand_Strategy.JPG
         
-
+        
         #turn 2 -- number of outs times 4 
         #turn 3 -- number of outs times 2
         
@@ -113,7 +113,6 @@ PlayerList = [
     ]
 
 from deck import Deck
-#deck = Deck()
 
 import sqlite3
 handsDb = sqlite3.connect(":memory:")
@@ -122,24 +121,56 @@ c = handsDb.cursor()
 #create database table
 c.execute('''CREATE TABLE hands
             (round integer, player text, hand text, cards text, value integer, won text, cash real)''')
+
 import random
 #start of main program--run simulation a number of times put results in database
 round = 1
 
+import itertools
+button = itertools.cycle(PlayerList)
+
+#number of hands to run through -- 1000 seems like a suficient amount for initial runs
 for _ in range(1000):
 
-    #shuffle deck thrice, deal two cards to players
+            
+
+    #move big blind to next player
+    #next(button).cash -= 10
+    
+    
+    
+    #shuffle deck, deal two cards to players
     #new deck
     deck = Deck()
     random.shuffle(deck.remaining)
-    random.shuffle(deck.remaining)
-    random.shuffle(deck.remaining)
-
+    
     #deal to players
     for i in PlayerList:
         i.hand = Hand(deck.draw(2))
         
+    """
+    first round of betting to start
+    bet amount (or fold) depends on several factors:
+        value of hand DONE
+        amount of bet TO the player (min bet, half pot, pot, twice pot, all-in)
+   
+    """
+    #establish blinds--min bet and 1/2 min bet
 
+    #bet is min bet to person after big blind
+
+    """
+    #each player (except big blind) looks at cards and places bet or folds
+    for i in PlayerList:       
+        if i.hand.startingHand() <= 8:
+            i.call = True
+            i.check = True
+        else:
+            i.fold = True
+    """
+            
+        
+    
     #deal to the board
     board = Hand(deck.draw(3))
 
@@ -194,6 +225,11 @@ for _ in range(1000):
                    i.cash))
     
     round += 1
+    
+         
+    
+    
+    
 
 handsDb.commit()
 

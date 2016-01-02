@@ -188,3 +188,59 @@ class Hand(object):
             except (TypeError, CardCreationError):
                 pass
             raise HandCreationError('invalid card symbols')
+
+    def startingHand(self):
+        """evaluate the first two cards based on S-M strategy"""
+        #create a dict of tuples for suited and unsuited cards
+        unsuited = dict([
+            ('A',(1,2,3,4,6,8,9,9,9,9,9,9,9)),
+            ('K',(None,1,4,5,6,8,9,9,9,9,9,9,9)),
+            ('Q',(None,None,1,5,6,8,9,9,9,9,9,9,9)),
+            ('J',(None,None,None,1,5,7,8,9,9,9,9,9,9)),
+            ('T',(None,None,None,None,2,7,8,9,9,9,9,9,9)),
+            ('9',(None,None,None,None,None,3,7,9,9,9,9,9,9)),
+            ('8',(None,None,None,None,None,None,4,8,9,9,9,9,9)),
+            ('7',(None,None,None,None,None,None,None,5,8,9,9,9,9)),
+            ('6',(None,None,None,None,None,None,None,None,5,8,9,9,9)),
+            ('5',(None,None,None,None,None,None,None,None,None,6,8,9,9)),
+            ('4',(None,None,None,None,None,None,None,None,None,None,7,9,9)),
+            ('3',(None,None,None,None,None,None,None,None,None,None,None,7,9)),
+            ('2',(None,None,None,None,None,None,None,None,None,None,None,None,7))
+            ])
+        suited = dict([
+            ('A',(None,1,2,2,3,5,5,5,5,5,5,5,5)),
+            ('K',(None,None,2,3,4,7,7,7,7,7,7,7,7)),
+            ('Q',(None,None,None,3,4,5,7,9,9,9,9,9,9)),
+            ('J',(None,None,None,None,3,4,6,6,9,9,9,9,9)),
+            ('T',(None,None,None,None,None,4,5,7,9,9,9,9,9)),
+            ('9',(None,None,None,None,None,None,4,5,8,9,9,9,9)),
+            ('8',(None,None,None,None,None,None,None,5,6,8,9,9,9)),
+            ('7',(None,None,None,None,None,None,None,None,5,6,8,9,9)),
+            ('6',(None,None,None,None,None,None,None,None,None,6,7,9,9)),
+            ('5',(None,None,None,None,None,None,None,None,None,None,6,7,9)),
+            ('4',(None,None,None,None,None,None,None,None,None,None,None,7,8)),
+            ('3',(None,None,None,None,None,None,None,None,None,None,None,None,8)),
+            ('2',(None,None,None,None,None,None,None,None,None,None,None,None,None))
+            ])
+        tempMapping = dict([
+            ('A',0),
+            ('K',1),
+            ('Q',2),
+            ('J',3),
+            ('T',4),
+            ('9',5),
+            ('8',6),
+            ('7',7),
+            ('6',8),
+            ('5',9),
+            ('4',10),
+            ('3',11),
+            ('2',12),
+            ])
+            
+        #if cards are suited use suited else unsuited
+        if self.cards[0].suit == self.cards[1].suit:
+            return suited.get(str(self.best_cards[0])[0])[tempMapping.get(str(self.best_cards[1])[0])]
+        else:
+            return unsuited.get(str(self.best_cards[0])[0])[tempMapping.get(str(self.best_cards[1])[0])]
+
