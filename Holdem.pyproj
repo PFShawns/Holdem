@@ -29,6 +29,7 @@
     <Compile Include="exceptions.py" />
     <Compile Include="hand.py" />
     <Compile Include="Holdem.py" />
+    <Compile Include="plotMethods.py" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
