@@ -13,6 +13,7 @@ class Player:
         self.cash = cash
         self.hand = []
         self.winningHands = []
+        self.betAmount = 0
         
         
 
@@ -72,20 +73,48 @@ class Player:
     #if threshhold over or equal, call, check, or raise        
 
 
-""" 
+ 
 #Board: possibly instance of HAND with additional attributes
 class Board:
-    def __init__(self,cards):
+    def __init__(self,iterator):
         #Attributes: Pot, Cards on Table, Number of Players, Turn Number
-        self.cards = list(cards)
-        self.turn = 0
+        #self.playerList = playerList
+        #self.cards = []
+        #self.turn = 0
         self.pot = 0
-        self.players = 0
+        self.iterator = iterator
+        #self.players = 0
 
     def __str__(self):
-        return "The cards on the board are " + str(self.cards)    
-#Functions: Assign blinds
-"""
+        return "The cards on the board are " + str(self.cards)   
+    
+    def placeBlinds(self):        
+
+        #place little blind
+        next(self.iterator).cash -= 5
+        #placeHolder.betAmount = 5
+  
+        #place big blind
+        next(self.iterator).cash -= 10
+        #placeHolder.betAmount = 
+
+        #move the iterator back to the little blind and assign a bet amount
+        next(self.iterator)
+        next(self.iterator)
+        next(self.iterator)
+        next(self.iterator).betAmount += 5
+
+        #assign the bet amount to the big blind
+        next(self.iterator).betAmount += 10
+
+        #move the iterator back to the big blind for the next round
+        next(self.iterator)
+        next(self.iterator)
+        next(self.iterator)
+        next(self.iterator)
+
+
+
 
 
 """
@@ -105,11 +134,11 @@ BUGS
 from hand import Hand
 #create list of players
 PlayerList = [
-    Player('A',100.00),
-    Player('B',100.00),
-    Player('C',100.00),
-    Player('D',100.00),
-    Player('E',100.00)
+    Player('A',1000.00),
+    Player('B',1000.00),
+    Player('C',1000.00),
+    Player('D',1000.00),
+    Player('E',1000.00)
     ]
 
 from deck import Deck
@@ -127,18 +156,16 @@ import random
 round = 1
 
 import itertools
+
 button = itertools.cycle(PlayerList)
 
-#number of hands to run through -- 1000 seems like a suficient amount for initial runs
-for _ in range(1000):
+boardFunc = Board(button)
 
-            
+#number of hands to run through -- 1000 seems like a sufficient amount for initial runs
+for _ in range(10):
 
-    #move big blind to next player
-    #next(button).cash -= 10
-    
-    
-    
+    boardFunc.placeBlinds()        
+          
     #shuffle deck, deal two cards to players
     #new deck
     deck = Deck()
@@ -148,17 +175,7 @@ for _ in range(1000):
     for i in PlayerList:
         i.hand = Hand(deck.draw(2))
         
-    """
-    first round of betting to start
-    bet amount (or fold) depends on several factors:
-        value of hand DONE
-        amount of bet TO the player (min bet, half pot, pot, twice pot, all-in)
-   
-    """
-    #establish blinds--min bet and 1/2 min bet
-
-    #bet is min bet to person after big blind
-
+    
     """
     #each player (except big blind) looks at cards and places bet or folds
     for i in PlayerList:       
@@ -168,7 +185,8 @@ for _ in range(1000):
         else:
             i.fold = True
     """
-            
+    for i in PlayerList:
+        print (round,i.personality,i.cash,i.betAmount)        
         
     
     #deal to the board
@@ -227,13 +245,13 @@ for _ in range(1000):
     round += 1
 
 handsDb.commit()
-
+"""
 #printing modules
 from plotMethods import plotMethods
 
 #prints entire database
 plotMethod1 = plotMethods(c)
 plotMethod1.allHands()
-
+"""
 handsDb.close()
 
