@@ -14,6 +14,8 @@ class Player:
         self.hand = []
         self.winningHands = []
         self.betAmount = 0
+        self.fold = False
+        self.outOfGame = False
         
         
 
@@ -48,12 +50,13 @@ class Player:
 
 
     #BetResponse--takes evaluation and check, calls, raises, or folds based on personality, pot size, bet amount, and the limitation of cash on hand
+    """
     def betResponse(self,bet,pot):
         self.check = False
         self.call = False
         self._raise = False
         self.fold = False
-
+    """
     #establish bet threshhold based on personality and evaluation (scale 0-4)
         #Type A -- equal to evaluation
         #Type B -- equal to evaluation
@@ -83,6 +86,7 @@ class Board:
         #self.turn = 0
         self.pot = 0
         self.iterator = iterator
+        self.ties = 0
         #self.players = 0
 
     def __str__(self):
@@ -127,6 +131,8 @@ Develop personality types and alterable traits
 
 BUGS
 
+check: accuracy of tie count and hands
+
 
 """
 
@@ -161,8 +167,12 @@ button = itertools.cycle(PlayerList)
 
 boardFunc = Board(button)
 
+
+
 #number of hands to run through -- 1000 seems like a sufficient amount for initial runs
-for _ in range(10):
+for _ in range(1000):
+
+    boardFunc.pot = 0
 
     boardFunc.placeBlinds()        
           
@@ -173,20 +183,53 @@ for _ in range(10):
     
     #deal to players
     for i in PlayerList:
-        i.hand = Hand(deck.draw(2))
-        
-    
-    """
-    #each player (except big blind) looks at cards and places bet or folds
-    for i in PlayerList:       
-        if i.hand.startingHand() <= 8:
-            i.call = True
-            i.check = True
+        if i.cash >= 10:
+            #everyone back in the game that folded last hand, unless they are out of the game
+            i.fold = False
+            i.hand = Hand(deck.draw(2))
         else:
             i.fold = True
-    """
+        
+    
+    
+    #each player in turn evaluates whether to stay in, placing a minimum bet equal to the big blind
+
+    
+
+    #determine the highest bet amount
+    betsPlaced = []
     for i in PlayerList:
-        print (round,i.personality,i.cash,i.betAmount)        
+        betsPlaced.append(i.betAmount)
+
+    highestBet = max(betsPlaced)
+
+    
+    #each player evaluates his hand, matching the highest bet or folding (TODO: raising)
+    for i in PlayerList:
+        #raising should be the first option (TODO)
+        #Big Blind has already placed the bet, Little Blind figures why not 
+        if i.betAmount == highestBet:
+            pass
+        elif i.betAmount == 5:
+            i.betAmount = highestBet
+            i.cash -= 5
+        elif i.hand.startingHand() <= 8: 
+            i.betAmount = highestBet
+            i.cash -= i.betAmount        
+        else:
+            i.fold = True
+            boardFunc.pot += i.betAmount
+        
+
+        
+            
+   
+    for i in PlayerList:
+        boardFunc.pot += i.betAmount
+        i.betAmount = 0
+        
+        
+        
         
     
     #deal to the board
@@ -194,14 +237,16 @@ for _ in range(10):
 
     #board cards are (for practical purposes) added to players hands
     for i in PlayerList:
-        i.hand = Hand(i.hand.cards + board.cards)
+        if i.fold == False:
+            i.hand = Hand(i.hand.cards + board.cards)
 
     #add another card to both the board and the hands
     drawOne = deck.draw(1)
     board.cards = board.cards + drawOne
 
     for i in PlayerList:
-        i.hand = Hand(i.hand.cards + drawOne)
+        if i.fold == False:
+            i.hand = Hand(i.hand.cards + drawOne)
 
     #draw final card to board
     drawOne = deck.draw(1)
@@ -210,7 +255,8 @@ for _ in range(10):
     board.cards = board.cards + drawOne
 
     for i in PlayerList:
-        i.hand = Hand(i.hand.cards + drawOne)
+        if i.fold == False:
+            i.hand = Hand(i.hand.cards + drawOne)
     
     #determining winning players will use two loops
     deck2 = Deck() #a dummy deck
@@ -219,16 +265,50 @@ for _ in range(10):
 
     #establishes correspondence with highest ranking hand
     for i in PlayerList:
-        if i.hand > bestHand:
-            bestHand = i.hand
+        if i.fold == False:
+            if i.hand > bestHand:
+                bestHand = i.hand
     
     #account for ties "==" does not work as class instances are being compared     
     for i in PlayerList:
-        if i.hand < bestHand:
-            pass
-        else:
-            i.hand.winner = True
+        if i.fold == False:
+            if i.hand < bestHand:
+                pass
+            else:
+                i.hand.winner = True
     
+    #count the number of winners and divide up the winnings
+    winnerCount = 0
+    for i in PlayerList:
+        if i.hand.winner == True:
+            winnerCount += 1
+    if winnerCount > 1:
+        boardFunc.ties += 1
+        for i in PlayerList:
+            if i.hand.winner == True:
+                print (i.hand)
+
+    #print ('winner count = ' + str(winnerCount))
+
+    #if everyone folds there will be an error--there must be a winner
+    boardFunc.pot = boardFunc.pot//winnerCount
+    #print ('winnings = ' + str(boardFunc.pot))
+
+    
+    for i in PlayerList:
+        if i.hand.winner == True:
+            i.cash += boardFunc.pot
+    #any remainder will stay in pot
+    boardFunc.pot = boardFunc.pot%winnerCount
+    #print ('left in pot = ' + str(boardFunc.pot))
+
+    #constantTotal = 0
+    #for i in PlayerList:
+        #constantTotal += i.cash
+
+    #print ('Running Total = ' + str(constantTotal))
+    #for i in PlayerList:
+        #print (round,i.personality,i.cash,i.hand.winner)
     #add round results into database    
     for i in PlayerList:
         #print(round,i.personality,i.hand,i.hand.winner,i.cash)
@@ -243,15 +323,15 @@ for _ in range(10):
                    i.cash))
     
     round += 1
-
+print (boardFunc.ties)
 handsDb.commit()
-"""
+
 #printing modules
 from plotMethods import plotMethods
 
 #prints entire database
 plotMethod1 = plotMethods(c)
 plotMethod1.allHands()
-"""
+
 handsDb.close()
 
